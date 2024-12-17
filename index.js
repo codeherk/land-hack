@@ -11,7 +11,9 @@
 // required packages
 import fetch from 'node-fetch'
 import readline from 'readline'
-require('dotenv').config()
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 let preparedURL = "https://phl.carto.com/api/v2/sql?q=" // start to build the URL of api
 var api_key = process.env.API_KEY // api key from geocod
