@@ -9,7 +9,6 @@
                                                                           
                                                                           
 // required packages
-import fetch from 'node-fetch'
 import readline from 'readline'
 import * as dotenv from 'dotenv';
 
