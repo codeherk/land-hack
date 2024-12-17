@@ -9,99 +9,99 @@
                                                                           
                                                                           
 // required packages
-const request = require('request');
-const readline = require('readline');
-require('dotenv').config();
+import fetch from 'node-fetch'
+import readline from 'readline'
+require('dotenv').config()
 
-var preparedURL = "https://phl.carto.com/api/v2/sql?q="; // start to build the URL of api
-var api_key = process.env.API_KEY; // api key from geocod
-var params = []; //array will store parameters to prep the URL with
-const limit = 10; // limits the data response. without an response, the query will take a long time to return data
+let preparedURL = "https://phl.carto.com/api/v2/sql?q=" // start to build the URL of api
+var api_key = process.env.API_KEY // api key from geocod
+let params = [] //array will store parameters to prep the URL with
+const limit = 10 // limits the data response. without an response, the query will take a long time to return data
 
 // color for console logging
-var FgCyan = "\x1b[36m";
-var Reset = "\x1b[0m";
+let FgCyan = "\x1b[36m"
+let Reset = "\x1b[0m"
 
 // prints in color
-var log = function(msg){
-  console.log(FgCyan+'%s'+Reset, msg);
+let log = function(msg){
+  console.log(FgCyan+'%s'+Reset, msg)
 }
 
 
 // create interface to get user input and display output
-var readLine = readline.createInterface({
+let readLine = readline.createInterface({
   input: process.stdin,
   output: process.stdout
-});
+})
 
 
 // get user input
-var recursiveAsyncReadLine = function () {
+function readInput(){
   readLine.question('\nEnter first name : ', (firstName) => {
     if (firstName == 'exit') {
-      return readLine.close();
+      return readLine.close()
     }
     if (firstName == '') {
-      log("No name was entered.");
-      return recursiveAsyncReadLine();
+      log("No name was entered.")
+      return readInput()
     }
     if (firstName.indexOf(';') > -1) { //semicolon found, suspected malicious use, scrub/validate input in case api becomes insecure
-      log("You have entered unfamilliar input. Please enter only characters and digits.");
-      return recursiveAsyncReadLine();
+      log("You have entered unfamilliar input. Please enter only characters and digits.")
+      return readInput()
     }
 
     readLine.question('Enter last name : ', (lastName) => {
       if (lastName == 'exit')
-        return readLine.close();
+        return readLine.close()
       if (lastName == '') {
-        return recursiveAsyncReadLine();
-        log("No name was entered.");
+        return readInput()
+        log("No name was entered.")
       }
       if (lastName.indexOf(';') > -1) { //semicolon found, validate input
-        return recursiveAsyncReadLine();
-        log("You have entered unfamilliar input. Please enter only characters and digits.");
+        return readInput()
+        log("You have entered unfamilliar input. Please enter only characters and digits.")
       }
-      firstName = firstName.trim().toUpperCase();
-      lastName = lastName.trim().toUpperCase();
+      firstName = firstName.trim().toUpperCase()
+      lastName = lastName.trim().toUpperCase()
       // otherwise, make request
-      log("The name you entered was: " + firstName + " " + lastName);
+      log("The name you entered was: " + firstName + " " + lastName)
       
-      getProperties(lastName + ' ' + firstName).then(function(result){
+      getProperties(lastName + ' ' + firstName).then((result) => {
         // show properties
-        logProperties(result);
+        logProperties(result)
         // show coordinates for each property
-        logCoordinates(result);
-        recursiveAsyncReadLine();
-        //log(result);
-      },function(err){
-        log(err);
-        recursiveAsyncReadLine();
-      });
-      //recursiveAsyncReadLine();
-    });
-  });
+        logCoordinates(result)
+        readInput()
+        //log(result)
+      }, (err) => {
+        log(err)
+        readInput()
+      })
+      //readInput()
+    })
+  })
 }
 
 
-var pushParams = function (params) {
+let pushParams = function (params) {
   //input: takes the parameters we want and populates an array with them
   //output: void
 
-  params.push("owner_1");
-  params.push("sale_date");
-  params.push("sale_price");
-  params.push("year_built");
-  params.push("location");
+  params.push("owner_1")
+  params.push("sale_date")
+  params.push("sale_price")
+  params.push("year_built")
+  params.push("location")
 }
 
 
-var prepareStatement = function (params) {
+let prepareStatement = function (params) {
   //input: takes the query parameters array
   //output: returns the formatted SQL statement
-  pushParams(params);
-  var statement = "SELECT " + params + " FROM opa_properties_public";
-  //log("testing statement" + statement);
-  return statement;
+  pushParams(params)
+  let statement = "SELECT " + params + " FROM opa_properties_public"
+  //log("testing statement" + statement)
+  return statement
 }
 
 
@@ -113,25 +113,17 @@ var prepareStatement = function (params) {
  * makes a request to the philadelphia api to get property data
  * and supplies the mailing address it retrieves to a geocoding api in order to get the coordinates
  */
-var getProperties = function (name) {
+let getProperties = (name) => {
 
-  var coordinates = [];
+  let coordinates = []
   // add name to query
-  var query = `${preparedURL} WHERE owner_1 LIKE '${name}%25' LIMIT 10`; // %25 is % .... SQL LIKE operator
-  //log("testing query: " + query); //debugging
-  return new Promise(function(resolve, reject){
-    // make the call
-    request(query, function (error, response, body) {
-      if (error) {
-        //log('error:', error); // Print the error if one occurred
-        reject(error);
-      }else{
-        //log('statusCode:', response && response.statusCode); // Print the response status code if a response was received// parse json data
-        var data = JSON.parse(body);
-        resolve(data.rows)
-      }
-    });
-  });
+  let query = `${preparedURL} WHERE owner_1 LIKE '${name}%25' LIMIT 10` // %25 is % .... SQL LIKE operator
+  log("testing query: " + query) //debugging
+  return fetch(query).then((response) => {
+    return response.json().then((data) => data.rows)
+  }).catch((err) => {
+    return err
+  })
 }
 
 /**
@@ -140,20 +132,20 @@ var getProperties = function (name) {
  * prints information requested about property (params elements) such as owner_1, location, etc.
  * prints neatly
  */
-var logProperties = function (properties) {
-  //log(properties);
-  log('\n');
+let logProperties = function (properties) {
+  //log(properties)
+  log('\n')
   log('\t'+ properties.length + ' Properties Found')
-  log('------------------------------------------------');
-  for(var i = 0; i < properties.length; i++){
-    // log(properties[i]);
-    log("Owner: \t" + properties[i].owner_1);
-    log("Location: \t" + properties[i].location); 
-    log("  built: \t" +properties[i].year_built);   
-    log("  sale price: \t" + properties[i].sale_price);
-    log("  sale date: \t" + properties[i].sale_date + "\n");
+  log('------------------------------------------------')
+  for(let i = 0; i < properties.length; i++){
+    // log(properties[i])
+    log("Owner: \t" + properties[i].owner_1)
+    log("Location: \t" + properties[i].location) 
+    log("  built: \t" +properties[i].year_built)   
+    log("  sale price: \t" + properties[i].sale_price)
+    log("  sale date: \t" + properties[i].sale_date + "\n")
   }
-  log('------------------------------------------------'); 
+  log('------------------------------------------------') 
 }
 
 /**
@@ -161,28 +153,28 @@ var logProperties = function (properties) {
  * @param {*} properties given from opendata response
  * prints address and coordinates (lat,lng)
  */
-var logCoordinates = function (properties) {
-  var allAddressesToGeolocate = [];
-  //log("\nGELOCATING IF DATA IS AVAILABLE");
-  for (var i = 0; i <= properties.length - 1; i++) { //runtime O(n) + whatever getMap is
-    allAddressesToGeolocate[i] = properties[i].location;
-    //log("testing addresses to geolocate: " + allAddressesToGeolocate[i]);
+let logCoordinates = function (properties) {
+  let allAddressesToGeolocate = []
+  //log("\nGELOCATING IF DATA IS AVAILABLE")
+  for (let i = 0; i <= properties.length - 1; i++) { //runtime O(n) + whatever getMap is
+    allAddressesToGeolocate[i] = properties[i].location
+    //log("testing addresses to geolocate: " + allAddressesToGeolocate[i])
     if (allAddressesToGeolocate[i] != "") { //prevent null requests  
-      var c = allAddressesToGeolocate[i].charAt(0); //sample the first character 
-      //log("testing c: " + c);
+      let c = allAddressesToGeolocate[i].charAt(0) //sample the first character 
+      //log("testing c: " + c)
       if (c >= 0 && c <= 9) { //if the first character is a number, the address is in the proper format (improper format is 'PO box xyz')
-        allAddressesToGeolocate[i] = allAddressesToGeolocate[i].replace(/\s*$/, ""); //get rid of whitespaces at the end of the entry
-        allAddressesToGeolocate[i] = allAddressesToGeolocate[i] + " PHILADELPHIA PA"; //format address for geocoding
+        allAddressesToGeolocate[i] = allAddressesToGeolocate[i].replace(/\s*$/, "") //get rid of whitespaces at the end of the entry
+        allAddressesToGeolocate[i] = allAddressesToGeolocate[i] + " PHILADELPHIA PA" //format address for geocoding
 
         getMap(allAddressesToGeolocate[i]).then(function (result) {
           log('\n')
-          log(result[0].formatted_address);
-          log('(' + result[0].location.lat +  ',' + result[0].location.lng + ')');
-          //log('lat: ' + result[0].location.lat);
-          //log('lng: ' + result[0].location.lng);
+          log(result[0].formatted_address)
+          log('(' + result[0].location.lat +  ',' + result[0].location.lng + ')')
+          //log('lat: ' + result[0].location.lat)
+          //log('lng: ' + result[0].location.lng)
         }, function (err) {
-          log(err);
-        });
+          log(err)
+        })
       }
     }
   }
@@ -194,10 +186,10 @@ var logCoordinates = function (properties) {
  * @returns the same address, spaces replaced with '+'
  * helps format the URL for the geocoding api
  */
-var formatGeocodingAddress = function (addressToFormat) {
-  var formattedAddress = addressToFormat.split(' ').join('+');
-  //log("testing formatted address: " + formattedAddress);
-  return formattedAddress;
+let formatGeocodingAddress = function (addressToFormat) {
+  let formattedAddress = addressToFormat.split(' ').join('+')
+  //log("testing formatted address: " + formattedAddress)
+  return formattedAddress
 }
 
 /**
@@ -205,35 +197,27 @@ var formatGeocodingAddress = function (addressToFormat) {
  * @param {*} address an address supplied by the philadelphia api 
  * @returns coordinates for address IF available
  */
-var getMap = function (address) {
+let getMap = function (address) {
   //if (address != "") { //if the attribute exists in the db for this entry
-    //log("testing mailingAddress: " + mailingAddress);
-    geocodeURL = "https://api.geocod.io/v1.3/geocode?q=" + formatGeocodingAddress(address) + "&api_key=" + api_key;//process.argv[2]; //126a657ce501575c55c35ee2c1156c5c00ae607"; //argv[1] if we want to use environment vars
-    //log("testing geocodeURL: " + geocodeURL);
-    return new Promise(function(resolve, reject){
-      request(geocodeURL, function (error, response, body) {
-        if (error) {
-          log('error:', error); // Print the error if one occurred
-          reject(error);
-          //return {};
-        }else{
-          //log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-          // parse json data
-          var data = JSON.parse(body);
-          resolve(data.results);
-          //return obj;
-        }
-      });
-    });
-  //}
+    //log("testing mailingAddress: " + mailingAddress)
+    let geocodeURL = "https://api.geocod.io/v1.3/geocode?q=" + formatGeocodingAddress(address) + "&api_key=" + api_key//process.argv[2] //126a657ce501575c55c35ee2c1156c5c00ae607" //argv[1] if we want to use environment vars
+    log("testing geocodeURL: " + geocodeURL)
+    
+    return fetch(geocodeURL).then((response) => {
+      return response.json().then((data) => data.results)
+    }).catch((err) => {
+        log(err) // Print the error if one occurred
+        log('error:', err) // Print the error if one occurred
+        return err
+    })
 }
 
 //*************************************************************************
 //prepare the URL and start to retrieve user input
 
-preparedURL = preparedURL.concat(prepareStatement(params));
-recursiveAsyncReadLine();
-//console.log('\x1b[36m%s\x1b[0m', 'I am cyan');
+preparedURL = preparedURL.concat(prepareStatement(params))
+readInput()
+//console.log('\x1b[36m%s\x1b[0m', 'I am cyan')
 //*************************************************************************
 
 

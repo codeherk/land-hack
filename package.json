@@ -1,5 +1,6 @@
 {
   "name": "land-hack",
+  "type": "module",
   "version": "1.0.0",
   "description": "Usage of Property API",
   "main": "index.js",
@@ -21,6 +22,6 @@
   "homepage": "https://github.com/codeherk/land-hack#readme",
   "dependencies": {
     "express": "^4.16.4",
-    "request": "^2.88.0"
+    "node-fetch": "^3.3.2"
   }
 }
