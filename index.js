@@ -30,6 +30,7 @@ let log = function(msg){
 }
 
 
+
 // create interface to get user input and display output
 let readLine = readline.createInterface({
   input: process.stdin,
@@ -72,7 +73,7 @@ function readInput(){
         // show properties
         logProperties(result)
         // show coordinates for each property
-        logCoordinates(result)
+        // logCoordinates(result)
         readInput()
         //log(result)
       }, (err) => {
